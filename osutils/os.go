@@ -2,24 +2,26 @@ package osutils
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"os"
 	"os/signal"
 )
 
-func ListenSystemSignal(ctrlBreakChan chan os.Signal, ctx context.Context, cancel context.CancelFunc) {
-	signal.Notify(ctrlBreakChan)
+func ListenSystemSignalsWithCtx(ctx context.Context, cancel context.CancelFunc, signalChan chan os.Signal, signals ...os.Signal) {
+	signal.Notify(signalChan)
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case s := <-ctrlBreakChan:
-			if s == os.Interrupt {
-				fmt.Println("got signal:", s)
-				cancel()
+		case acceptS := <-signalChan:
+			for _, listenS := range signals {
+				if acceptS == listenS {
+					log.Println("get signal: ", acceptS)
+					cancel()
 
-				return
+					return
+				}
 			}
 		}
 	}
