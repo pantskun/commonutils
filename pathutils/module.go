@@ -6,7 +6,7 @@ import (
 )
 
 // GetModulePath
-// get current module path.
+// get current module root path. program need be ran in module directory.
 func GetModulePath(moduleName string) string {
 	fp, err := os.Getwd()
 	if err != nil {
