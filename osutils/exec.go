@@ -18,6 +18,7 @@ const (
 type Command interface {
 	GetCmdState() ECmdState
 	Run() error
+	Kill() error
 	GetStdout(ctx context.Context) (string, error)
 	GetStderr(ctx context.Context) (string, error)
 	SetStdin(in string) error
@@ -68,6 +69,14 @@ func (c *command) Run() error {
 	c.state = ECmdStateFinish
 
 	return nil
+}
+
+func (c *command) Kill() error {
+	if c.state == ECmdStateRunning {
+		return c.cmd.Process.Kill()
+	}
+
+	return &CmdStateError{msg: "cmd not running"}
 }
 
 func (c *command) GetStdout(ctx context.Context) (string, error) {
