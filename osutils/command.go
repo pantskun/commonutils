@@ -25,8 +25,9 @@ type Command interface {
 }
 
 type command struct {
-	cmd    *exec.Cmd
-	state  ECmdState
+	cmd   *exec.Cmd
+	state ECmdState
+
 	stdin  bytes.Buffer
 	stdout bytes.Buffer
 	stderr bytes.Buffer
@@ -44,6 +45,14 @@ func (e *CmdStateError) Error() string {
 	return e.msg
 }
 
+type CmdTimeoutError struct{}
+
+var _ error = (*CmdTimeoutError)(nil)
+
+func (e *CmdTimeoutError) Error() string {
+	return "timeout"
+}
+
 func NewCommand(name string, args ...string) Command {
 	cmd := new(command)
 	cmd.cmd = exec.Command(name, args...)
@@ -51,6 +60,24 @@ func NewCommand(name string, args ...string) Command {
 	cmd.cmd.Stdin = &cmd.stdin
 	cmd.cmd.Stdout = &cmd.stdout
 	cmd.cmd.Stderr = &cmd.stderr
+
+	// if stdoutPipe, err := cmd.cmd.StdoutPipe(); err != nil {
+	// 	return nil, err
+	// } else {
+	// 	cmd.stdoutPipe = stdoutPipe
+	// }
+
+	// if stdinPipe, err := cmd.cmd.StdinPipe(); err != nil {
+	// 	return nil, err
+	// } else {
+	// 	cmd.stdinPipe = stdinPipe
+	// }
+
+	// if stderrPipe, err := cmd.cmd.StderrPipe(); err != nil {
+	// 	return nil, err
+	// } else {
+	// 	cmd.stderrPipe = stderrPipe
+	// }
 
 	return cmd
 }
@@ -84,11 +111,15 @@ func (c *command) GetStdout(ctx context.Context) (string, error) {
 		select {
 		case <-ctx.Done():
 			{
-				return "", nil
+				return "", &CmdTimeoutError{}
 			}
 		default:
 			{
 				if c.state == ECmdStateFinish || c.state == ECmdStateError {
+					// _, err := c.stdout.ReadFrom(c.stdoutPipe)
+					// if err != nil {
+					// 	return "", err
+					// }
 					return c.stdout.String(), nil
 				}
 			}
@@ -101,11 +132,15 @@ func (c *command) GetStderr(ctx context.Context) (string, error) {
 		select {
 		case <-ctx.Done():
 			{
-				return "", nil
+				return "", &CmdTimeoutError{}
 			}
 		default:
 			{
 				if c.state == ECmdStateFinish || c.state == ECmdStateError {
+					// _, err := c.stderr.ReadFrom(c.stderrPipe)
+					// if err != nil {
+					// 	return "", err
+					// }
 					return c.stderr.String(), nil
 				}
 			}
@@ -118,7 +153,15 @@ func (c *command) SetStdin(in string) error {
 		return &CmdStateError{msg: "set stdin need cmd in running or ready state"}
 	}
 
-	c.stdin.WriteString(in)
+	// _, err := c.stdinPipe.Write([]byte(in))
+	// if err != nil {
+	// 	return err
+	// }
+
+	_, err := c.stdin.WriteString(in)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
