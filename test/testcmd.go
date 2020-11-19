@@ -1,19 +1,24 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 func main() {
-	fmt.Println("Please input a number")
+	panicFunc()
+}
 
-	var i int
-	fmt.Scanf("%d\n", &i)
+func panicFunc() {
+	defer func() {
+		fmt.Println("start defer func")
 
-	fmt.Println("input number: ", i)
+		if r := recover(); r != nil {
+			fmt.Println("get panic", r)
+		}
+	}()
 
-	fmt.Println("Please input a string")
-
-	var f float32
-	fmt.Scanf("%f\n", &f)
-
-	fmt.Println("input float: ", f)
+	fmt.Println("ready to panic")
+	// panic("panic")
+	os.Exit(0)
 }

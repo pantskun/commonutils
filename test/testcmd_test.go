@@ -1,46 +1,77 @@
 package main
 
 import (
-	"bytes"
-	"log"
-	"os/exec"
 	"testing"
 )
 
-func TestMain(t *testing.T) {
-	cmd := exec.Command("testcmd.exe")
+// func TestMain(t *testing.T) {
+// 	cmd := exec.Command("testcmd.exe")
 
-	var (
-		stdout bytes.Buffer
-		stdin  bytes.Buffer
-	)
+// 	var (
+// 		stdout bytes.Buffer
+// 		stdin  bytes.Buffer
+// 	)
 
-	cmd.Stdout = &stdout
-	cmd.Stdin = &stdin
+// 	cmd.Stdout = &stdout
+// 	cmd.Stdin = &stdin
 
-	// ch := make(chan int)
+// 	stdin.WriteString("1\n")
+// 	stdin.WriteString("12.66\n")
 
-	// go func() {
-	// 	log.Println("start cmd")
+// 	// <-ch
+// 	if err := cmd.Run(); err != nil {
+// 		t.Fatal(err)
+// 	}
 
-	// 	if err := cmd.Run(); err != nil {
-	// 		t.Fatal(err)
-	// 	}
+// 	log.Println(stdout.String())
+// }
 
-	// 	log.Println("end cmd")
+type AnyType interface{}
 
-	// 	time.Sleep(5 * time.Second)
+type S struct {
+	data string
+}
 
-	// 	ch <- 0
-	// }()
+func (s S) Val() string {
+	return s.data
+}
 
-	stdin.WriteString("1\n")
-	stdin.WriteString("12.66\n")
+func (s *S) ChangeP(data string) {
+	s.data = data
+}
 
-	// <-ch
-	if err := cmd.Run(); err != nil {
-		t.Fatal(err)
+func (s S) ChangeV(data string) {
+	s.data = data
+}
+
+type testStruct struct {
+	handler func()
+}
+
+func addSlice(s interface{}, v interface{}, t *testing.T) {
+	_, ok := (s).(*[]int)
+	if !ok {
+		t.Log("not *[]interface{}")
+		return
 	}
 
-	log.Println(stdout.String())
+}
+
+type InterfaceTest interface {
+	Equal() bool
+}
+
+func TestMain(t *testing.T) {
+	t0 := testStruct{}
+	t1 := &t0
+	t2 := &t0
+	t.Log(t1 == t2)
+}
+
+func InterfaceFunc(i interface{}) {
+	println(i)
+}
+
+func IsEqual(a, b interface{}) bool {
+	return a == b
 }

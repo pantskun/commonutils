@@ -8,7 +8,7 @@ import (
 	"github.com/pantskun/commonutils/pathutils"
 )
 
-func TestExec(t *testing.T) {
+func TestCommand(t *testing.T) {
 	modulePath := pathutils.GetModulePath("commonutils")
 	testPath := path.Join(modulePath, "test/testcmd.exe")
 
@@ -31,5 +31,4 @@ func TestExec(t *testing.T) {
 	} else {
 		t.Log(stdout)
 	}
-
 }
