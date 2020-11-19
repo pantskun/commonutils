@@ -34,7 +34,7 @@ func (p *TaskPool) GetFinishedTaskNum() int {
 	return len(p.finishedTaskList)
 }
 
-addfunc (p *TaskPool) GetErrorTaskNum() int {
+func (p *TaskPool) GetErrorTaskNum() int {
 	return len(p.errorTaskList)
 }
 
