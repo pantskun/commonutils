@@ -12,6 +12,10 @@ func NewQueueWithSize(size int) *Queue {
 	return &Queue{values: make([]interface{}, size)}
 }
 
+func (q *Queue) Size() int {
+	return len(q.values)
+}
+
 func (q *Queue) Push(value interface{}) {
 	q.values = append(q.values, value)
 }

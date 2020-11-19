@@ -34,6 +34,18 @@ func (p *TaskPool) GetFinishedTaskNum() int {
 	return len(p.finishedTaskList)
 }
 
+addfunc (p *TaskPool) GetErrorTaskNum() int {
+	return len(p.errorTaskList)
+}
+
+func (p *TaskPool) GetWaitingTaskNum() int {
+	return len(p.waitingTaskList)
+}
+
+func (p *TaskPool) GetReadyTaskNum() int {
+	return p.readyTaskQueue.Size()
+}
+
 func (p *TaskPool) Run() {
 	// 开始循环，直到TaskPool状态不为Running
 	go func() {
