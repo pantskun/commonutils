@@ -26,12 +26,20 @@ func NewTaskPool() *TaskPool {
 	return &TaskPool{state: ETaskPoolStateRunning}
 }
 
+func (p *TaskPool) GetAllTaskNum() int {
+	return p.allTaskList.Size()
+}
+
+func (p *TaskPool) GetFinishedTaskNum() int {
+	return len(p.finishedTaskList)
+}
+
 func (p *TaskPool) Run() {
 	// 开始循环，直到TaskPool状态不为Running
 	go func() {
 		for !(p.state == ETaskPoolStateRunning) {
 			// 检测WaitingTaskList，将Ready的Task放入ReadyTaskQueue
-			p.CheckWaitingTask()
+			p.checkWaitingTask()
 
 			if p.readyTaskQueue.IsEmpty() {
 				continue
@@ -63,7 +71,7 @@ func (p *TaskPool) AddTask(task *Task) {
 	p.allTaskList.Add(task)
 }
 
-func (p *TaskPool) CheckWaitingTask() {
+func (p *TaskPool) checkWaitingTask() {
 	for i, task := range p.waitingTaskList {
 		if task.state == ETaskStateReady {
 			if i == len(p.waitingTaskList)-1 {
