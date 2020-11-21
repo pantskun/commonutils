@@ -22,8 +22,10 @@ func TestCommand(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := cmd.Run(); err != nil {
-		t.Fatal(err)
+	cmd.Run()
+
+	if cmd.GetCmdState() == ECmdStateError {
+		t.Fatal(cmd.GetCmdError())
 	}
 
 	if stdout, err := cmd.GetStdout(context.TODO()); err != nil {

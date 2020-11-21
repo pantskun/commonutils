@@ -17,7 +17,9 @@ const (
 
 type Command interface {
 	GetCmdState() ECmdState
-	Run() error
+	GetCmdError() error
+	Run()
+	RunAsyn()
 	Kill() error
 	GetStdout(ctx context.Context) (string, error)
 	GetStderr(ctx context.Context) (string, error)
@@ -27,10 +29,15 @@ type Command interface {
 type command struct {
 	cmd   *exec.Cmd
 	state ECmdState
+	err   error
 
 	stdin  bytes.Buffer
 	stdout bytes.Buffer
 	stderr bytes.Buffer
+
+	// stdinPipe  io.WriteCloser
+	// stdoutPipe io.ReadCloser
+	// stderrPipe io.ReadCloser
 }
 
 var _ Command = (*command)(nil)
@@ -86,16 +93,34 @@ func (c *command) GetCmdState() ECmdState {
 	return c.state
 }
 
-func (c *command) Run() error {
+func (c *command) GetCmdError() error {
+	return c.err
+}
+
+func (c *command) Run() {
 	c.state = ECmdStateRunning
 	if err := c.cmd.Run(); err != nil {
 		c.state = ECmdStateError
-		return err
+		c.err = err
+
+		return
 	}
 
 	c.state = ECmdStateFinish
+}
 
-	return nil
+func (c *command) RunAsyn() {
+	go func() {
+		c.state = ECmdStateRunning
+		if err := c.cmd.Run(); err != nil {
+			c.state = ECmdStateError
+			c.err = err
+
+			return
+		}
+
+		c.state = ECmdStateFinish
+	}()
 }
 
 func (c *command) Kill() error {
