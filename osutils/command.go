@@ -2,7 +2,6 @@ package osutils
 
 import (
 	"bytes"
-	"context"
 	"os/exec"
 )
 
@@ -21,8 +20,8 @@ type Command interface {
 	Run()
 	RunAsyn()
 	Kill() error
-	GetStdout(ctx context.Context) (string, error)
-	GetStderr(ctx context.Context) (string, error)
+	GetStdout() string
+	GetStderr() string
 	SetStdin(in string) error
 }
 
@@ -131,46 +130,33 @@ func (c *command) Kill() error {
 	return &CmdStateError{msg: "cmd not running"}
 }
 
-func (c *command) GetStdout(ctx context.Context) (string, error) {
-	for {
-		select {
-		case <-ctx.Done():
-			{
-				return "", &CmdTimeoutError{}
-			}
-		default:
-			{
-				if c.state == ECmdStateFinish || c.state == ECmdStateError {
-					// _, err := c.stdout.ReadFrom(c.stdoutPipe)
-					// if err != nil {
-					// 	return "", err
-					// }
-					return c.stdout.String(), nil
-				}
-			}
-		}
-	}
+func (c *command) GetStdout() string {
+	return c.stdout.String()
 }
 
-func (c *command) GetStderr(ctx context.Context) (string, error) {
-	for {
-		select {
-		case <-ctx.Done():
-			{
-				return "", &CmdTimeoutError{}
-			}
-		default:
-			{
-				if c.state == ECmdStateFinish || c.state == ECmdStateError {
-					// _, err := c.stderr.ReadFrom(c.stderrPipe)
-					// if err != nil {
-					// 	return "", err
-					// }
-					return c.stderr.String(), nil
-				}
-			}
-		}
-	}
+// func (c *command) GetStderr(ctx context.Context) (string, error) {
+// 	for {
+// 		select {
+// 		case <-ctx.Done():
+// 			{
+// 				return "", &CmdTimeoutError{}
+// 			}
+// 		default:
+// 			{
+// 				if c.state == ECmdStateFinish || c.state == ECmdStateError {
+// 					// _, err := c.stderr.ReadFrom(c.stderrPipe)
+// 					// if err != nil {
+// 					// 	return "", err
+// 					// }
+// 					return c.stderr.String(), nil
+// 				}
+// 			}
+// 		}
+// 	}
+// }
+
+func (c *command) GetStderr() string {
+	return c.stderr.String()
 }
 
 func (c *command) SetStdin(in string) error {

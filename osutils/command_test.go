@@ -1,7 +1,6 @@
 package osutils
 
 import (
-	"context"
 	"path"
 	"testing"
 
@@ -28,9 +27,5 @@ func TestCommand(t *testing.T) {
 		t.Fatal(cmd.GetCmdError())
 	}
 
-	if stdout, err := cmd.GetStdout(context.TODO()); err != nil {
-		t.Fatal(err)
-	} else {
-		t.Log(stdout)
-	}
+	t.Log(cmd.GetStdout())
 }
