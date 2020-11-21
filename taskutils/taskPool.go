@@ -10,6 +10,7 @@ const (
 	ETaskPoolStateError   ETaskPoolState = 0
 	ETaskPoolStateRunning ETaskPoolState = 1
 	ETaskPoolStateClosing ETaskPoolState = 2
+	ETaskPoolStateClosed  ETaskPoolState = 3
 )
 
 type TaskPool struct {
@@ -49,7 +50,7 @@ func (p *TaskPool) GetReadyTaskNum() int {
 func (p *TaskPool) Run() {
 	// 开始循环，直到TaskPool状态不为Running
 	go func() {
-		for !(p.state == ETaskPoolStateRunning) {
+		for p.state == ETaskPoolStateRunning {
 			// 检测WaitingTaskList，将Ready的Task放入ReadyTaskQueue
 			p.checkWaitingTask()
 
@@ -71,11 +72,22 @@ func (p *TaskPool) Run() {
 				p.finishedTaskList = append(p.finishedTaskList, t)
 			}
 		}
+
+		// 结束循环，Pool关闭
+		p.state = ETaskPoolStateClosed
 	}()
 }
 
 func (p *TaskPool) Close() {
+	// 通知关闭
 	p.state = ETaskPoolStateClosing
+
+	// 等待关闭
+	for {
+		if p.state == ETaskPoolStateClosed {
+			return
+		}
+	}
 }
 
 func (p *TaskPool) AddTask(task *Task) {
