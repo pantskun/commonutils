@@ -24,7 +24,11 @@ type TaskPool struct {
 }
 
 func NewTaskPool() *TaskPool {
-	return &TaskPool{state: ETaskPoolStateRunning}
+	return &TaskPool{
+		state:          ETaskPoolStateRunning,
+		allTaskList:    container.NewVector(),
+		readyTaskQueue: container.NewQueue(),
+	}
 }
 
 func (p *TaskPool) GetAllTaskNum() int {

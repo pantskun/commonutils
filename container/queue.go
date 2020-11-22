@@ -1,26 +1,37 @@
 package container
 
-type Queue struct {
-	values []interface{}
+type Queue interface {
+	Size() int
+	IsEmpty() bool
+	Push(value Element)
+	Pop() Element
 }
 
-func NewQueue() *Queue {
-	return &Queue{}
+type queue struct {
+	values []Element
 }
 
-func NewQueueWithSize(size int) *Queue {
-	return &Queue{values: make([]interface{}, size)}
+func NewQueue() Queue {
+	return &queue{}
 }
 
-func (q *Queue) Size() int {
+func NewQueueWithSize(size int) Queue {
+	return &queue{values: make([]Element, size)}
+}
+
+func (q *queue) Size() int {
 	return len(q.values)
 }
 
-func (q *Queue) Push(value interface{}) {
+func (q *queue) IsEmpty() bool {
+	return len(q.values) == 0
+}
+
+func (q *queue) Push(value Element) {
 	q.values = append(q.values, value)
 }
 
-func (q *Queue) Pop() interface{} {
+func (q *queue) Pop() Element {
 	l := len(q.values)
 	if l == 0 {
 		return nil
@@ -30,8 +41,4 @@ func (q *Queue) Pop() interface{} {
 	q.values = q.values[1:]
 
 	return t
-}
-
-func (q *Queue) IsEmpty() bool {
-	return len(q.values) == 0
 }
