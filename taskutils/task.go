@@ -1,6 +1,10 @@
 package taskutils
 
-import "github.com/pantskun/commonutils/container"
+import (
+	"log"
+
+	"github.com/pantskun/commonutils/container"
+)
 
 // type Task interface {
 // 	GetState() ETaskState
@@ -17,6 +21,7 @@ const (
 )
 
 type Task struct {
+	name        string
 	do          func() error
 	state       ETaskState
 	preTaskList []*Task
@@ -26,8 +31,8 @@ type Task struct {
 // NewTask 创建新的任务.
 //  do func() error: 任务的内容
 //  preTaskks: 任务的前置任务
-func NewTask(do func() error, preTasks ...*Task) *Task {
-	newTask := Task{do: do, state: ETaskStateWaiting, preTaskList: preTasks}
+func NewTask(name string, do func() error, preTasks ...*Task) *Task {
+	newTask := Task{name: name, do: do, state: ETaskStateWaiting, preTaskList: preTasks}
 
 	for _, preTask := range preTasks {
 		if preTask != nil {
@@ -83,6 +88,7 @@ func (t *Task) Run() {
 	}
 
 	t.state = ETaskStateRunning
+	log.Println("Task:", t.name, " Running")
 
 	err := t.do()
 	if err != nil {
@@ -91,6 +97,7 @@ func (t *Task) Run() {
 	}
 
 	t.state = ETaskStateFinished
+	log.Println("Task:", t.name, " Finished")
 
 	for _, subTask := range t.subTaskList {
 		subTask.CheckIsReady()
