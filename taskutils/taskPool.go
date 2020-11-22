@@ -98,13 +98,14 @@ func (p *TaskPool) AddTask(task *Task) {
 func (p *TaskPool) checkWaitingTask() {
 	for i, task := range p.waitingTaskList {
 		if task.state == ETaskStateReady {
+			p.readyTaskQueue.Push(task)
+
 			if i == len(p.waitingTaskList)-1 {
 				p.waitingTaskList = p.waitingTaskList[:i]
 			} else {
 				p.waitingTaskList = append(p.waitingTaskList[:i], p.waitingTaskList[i+1:]...)
 			}
 
-			p.readyTaskQueue.Push(task)
 		}
 	}
 }
