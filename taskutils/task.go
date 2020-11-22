@@ -1,8 +1,6 @@
 package taskutils
 
 import (
-	"log"
-
 	"github.com/pantskun/commonutils/container"
 )
 
@@ -88,7 +86,7 @@ func (t *Task) Run() {
 	}
 
 	t.state = ETaskStateRunning
-	log.Println("Task:", t.name, " Running")
+	// log.Println("Task:", t.name, " Running")
 
 	err := t.do()
 	if err != nil {
@@ -97,7 +95,7 @@ func (t *Task) Run() {
 	}
 
 	t.state = ETaskStateFinished
-	log.Println("Task:", t.name, " Finished")
+	// log.Println("Task:", t.name, " Finished")
 
 	for _, subTask := range t.subTaskList {
 		subTask.CheckIsReady()
