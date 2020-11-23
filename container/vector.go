@@ -1,34 +1,22 @@
 package container
 
-type Vector interface {
-	Size() int
-	Add(value Element)
-	Insert(value Element, pos int)
-	Find(value Element) int
-	Remove(pos int)
-}
-
-type vector struct {
+type Vector struct {
 	values []Element
 }
 
-func NewVector() Vector {
-	return &vector{}
+func (v *Vector) InitWithSize(size int) {
+	v.values = make([]Element, size)
 }
 
-func NewVectorWithSize(size int) Vector {
-	return &vector{values: make([]Element, size)}
-}
-
-func (v *vector) Size() int {
+func (v *Vector) Size() int {
 	return len(v.values)
 }
 
-func (v *vector) Add(value Element) {
+func (v *Vector) Add(value Element) {
 	v.values = append(v.values, value)
 }
 
-func (v *vector) Insert(value Element, pos int) {
+func (v *Vector) Insert(value Element, pos int) {
 	l := len(v.values)
 
 	if pos >= l {
@@ -40,7 +28,11 @@ func (v *vector) Insert(value Element, pos int) {
 	}
 }
 
-func (v *vector) Remove(pos int) {
+func (v *Vector) Get(pos int) Element {
+	return v.values[pos]
+}
+
+func (v *Vector) Remove(pos int) {
 	l := len(v.values)
 
 	if pos < l && pos >= 0 {
@@ -48,7 +40,7 @@ func (v *vector) Remove(pos int) {
 	}
 }
 
-func (v *vector) Find(value Element) int {
+func (v *Vector) Find(value Element) int {
 	for i, v := range v.values {
 		if Equal(v, value) {
 			return i
