@@ -1,34 +1,40 @@
 package taskutils
 
 import (
+	"context"
+	"time"
+
 	"github.com/pantskun/commonutils/container"
 )
 
 type ETaskPoolState int
 
 const (
-	ETaskPoolStateError   ETaskPoolState = 0
-	ETaskPoolStateRunning ETaskPoolState = 1
-	ETaskPoolStateClosing ETaskPoolState = 2
-	ETaskPoolStateClosed  ETaskPoolState = 3
+	ETaskPoolStateError ETaskPoolState = iota
+	ETaskPoolStateStop
+	ETaskPoolStateRunning
+	ETaskPoolStateClosing
+	ETaskPoolStateClosed
 )
 
 type TaskPool struct {
 	allTaskList      container.Vector
-	waitingTaskList  []*Task
-	errorTaskList    []*Task
+	waitingTaskList  container.Vector
+	errorTaskList    container.Vector
 	readyTaskQueue   container.Queue
-	finishedTaskList []*Task
+	finishedTaskList container.Vector
 
 	state ETaskPoolState
 }
 
 func NewTaskPool() *TaskPool {
 	return &TaskPool{
-		state:          ETaskPoolStateRunning,
-		allTaskList:    container.NewVector(),
-		readyTaskQueue: container.NewQueue(),
+		state: ETaskPoolStateStop,
 	}
+}
+
+func (p *TaskPool) GetTaskPoolState() ETaskPoolState {
+	return p.state
 }
 
 func (p *TaskPool) GetAllTaskNum() int {
@@ -36,15 +42,15 @@ func (p *TaskPool) GetAllTaskNum() int {
 }
 
 func (p *TaskPool) GetFinishedTaskNum() int {
-	return len(p.finishedTaskList)
+	return p.finishedTaskList.Size()
 }
 
 func (p *TaskPool) GetErrorTaskNum() int {
-	return len(p.errorTaskList)
+	return p.errorTaskList.Size()
 }
 
 func (p *TaskPool) GetWaitingTaskNum() int {
-	return len(p.waitingTaskList)
+	return p.waitingTaskList.Size()
 }
 
 func (p *TaskPool) GetReadyTaskNum() int {
@@ -52,6 +58,8 @@ func (p *TaskPool) GetReadyTaskNum() int {
 }
 
 func (p *TaskPool) Run() {
+	p.state = ETaskPoolStateRunning
+
 	// 开始循环，直到TaskPool状态不为Running
 	go func() {
 		for p.state == ETaskPoolStateRunning {
@@ -69,11 +77,11 @@ func (p *TaskPool) Run() {
 
 			// 根据任务执行后的状态，放入ErrorTaskList和FinishedTaskList
 			if t.state == ETaskStateError {
-				p.errorTaskList = append(p.errorTaskList, t)
+				p.errorTaskList.Add(t)
 			}
 
 			if t.state == ETaskStateFinished {
-				p.finishedTaskList = append(p.finishedTaskList, t)
+				p.finishedTaskList.Add(t)
 			}
 		}
 
@@ -86,8 +94,17 @@ func (p *TaskPool) Close() {
 	// 通知关闭
 	p.state = ETaskPoolStateClosing
 
+	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancel()
+
 	// 等待关闭
 	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
 		if p.state == ETaskPoolStateClosed {
 			return
 		}
@@ -95,20 +112,20 @@ func (p *TaskPool) Close() {
 }
 
 func (p *TaskPool) AddTask(task *Task) {
-	p.waitingTaskList = append(p.waitingTaskList, task)
+	p.waitingTaskList.Add(task)
 	p.allTaskList.Add(task)
 }
 
 func (p *TaskPool) checkWaitingTask() {
 	for i := 0; ; {
-		if !(i < len(p.waitingTaskList)) {
+		if !(i < p.waitingTaskList.Size()) {
 			break
 		}
 
-		task := p.waitingTaskList[i]
+		task := p.waitingTaskList.Get(i).(*Task)
 		if task.state == ETaskStateReady {
 			p.readyTaskQueue.Push(task)
-			p.waitingTaskList = append(p.waitingTaskList[:i], p.waitingTaskList[i+1:]...)
+			p.waitingTaskList.Remove(i)
 
 			continue
 		}

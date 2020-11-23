@@ -11,11 +11,11 @@ import (
 type ETaskState int
 
 const (
-	ETaskStateError    ETaskState = 0
-	ETaskStateWaiting  ETaskState = 1
-	ETaskStateReady    ETaskState = 2
-	ETaskStateRunning  ETaskState = 3
-	ETaskStateFinished ETaskState = 4
+	ETaskStateError ETaskState = iota
+	ETaskStateWaiting
+	ETaskStateReady
+	ETaskStateRunning
+	ETaskStateFinished
 )
 
 type Task struct {
@@ -45,6 +45,8 @@ func NewTask(name string, do func() error, preTasks ...*Task) *Task {
 	return &newTask
 }
 
+// Equal
+// 判断是否指向同一个task
 func (t *Task) Equal(other container.Element) bool {
 	value, ok := other.(*Task)
 	if !ok {
