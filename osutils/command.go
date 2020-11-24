@@ -8,10 +8,10 @@ import (
 type ECmdState int
 
 const (
-	ECmdStateError   = 0
-	ECmdStateReady   = 1
-	ECmdStateRunning = 2
-	ECmdStateFinish  = 3
+	ECmdStateError ECmdState = iota
+	ECmdStateReady
+	ECmdStateRunning
+	ECmdStateFinish
 )
 
 type Command interface {
