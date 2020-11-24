@@ -1,6 +1,7 @@
 package osutils
 
 type MultiProcCmd interface {
+	GetCmds() []Command
 	GetCmdStates() []ECmdState
 	GetCmdErrors() []error
 	Run()
@@ -25,6 +26,10 @@ func NewMultiProcCmd(procNum int, name string, args ...string) MultiProcCmd {
 	}
 
 	return &multiProcCmd{cmds: cmds}
+}
+
+func (m *multiProcCmd) GetCmds() []Command {
+	return m.cmds
 }
 
 func (m *multiProcCmd) GetCmdStates() []ECmdState {
