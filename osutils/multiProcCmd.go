@@ -58,7 +58,7 @@ func (m *multiProcCmd) Run() {
 	}
 
 	for _, cmd := range m.cmds {
-		for cmd.GetCmdState() == ECmdStateRunning {
+		for cmd.GetCmdState() == ECmdStateFinish {
 		}
 	}
 }
