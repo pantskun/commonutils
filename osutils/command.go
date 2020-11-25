@@ -109,8 +109,9 @@ func (c *command) Run() {
 }
 
 func (c *command) RunAsyn() {
+	c.state = ECmdStateRunning
+
 	go func() {
-		c.state = ECmdStateRunning
 		if err := c.cmd.Run(); err != nil {
 			c.state = ECmdStateError
 			c.err = err
