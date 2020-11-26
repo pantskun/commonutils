@@ -59,7 +59,7 @@ func TestCheckIsReady(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase.task.CheckIsReady()
+		testCase.task.checkIsReady()
 		assert.Equal(t, testCase.task.GetState(), testCase.expected)
 	}
 }

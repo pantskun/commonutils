@@ -21,8 +21,9 @@ const (
 type Task interface {
 	Equal(other container.Element) bool
 	GetState() ETaskState
-	CheckIsReady()
 	Run()
+
+	checkIsReady()
 }
 
 type task struct {
@@ -54,7 +55,7 @@ func NewTask(name string, do func() error, preTasks ...Task) Task {
 }
 
 // Equal
-// 判断是否指向同一个task
+// 判断是否指向同一个task.
 func (t *task) Equal(other container.Element) bool {
 	value, ok := other.(Task)
 	if !ok {
@@ -70,7 +71,7 @@ func (t *task) GetState() ETaskState {
 }
 
 // CheckIsReady 检查任务前置是否都已完成.
-func (t *task) CheckIsReady() {
+func (t *task) checkIsReady() {
 	for _, preTask := range t.preTaskList {
 		if preTask == nil {
 			continue
@@ -96,7 +97,6 @@ func (t *task) Run() {
 	}
 
 	t.state = ETaskStateRunning
-	// log.Println("Task:", t.name, " Running")
 
 	err := t.do()
 	if err != nil {
@@ -105,9 +105,8 @@ func (t *task) Run() {
 	}
 
 	t.state = ETaskStateFinished
-	// log.Println("Task:", t.name, " Finished")
 
 	for _, subTask := range t.subTaskList {
-		subTask.CheckIsReady()
+		subTask.checkIsReady()
 	}
 }
