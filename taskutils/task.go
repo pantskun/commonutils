@@ -18,23 +18,31 @@ const (
 	ETaskStateFinished
 )
 
-type Task struct {
+type Task interface {
+	Equal(other container.Element) bool
+	GetState() ETaskState
+	CheckIsReady()
+	Run()
+}
+
+type task struct {
 	name        string
 	do          func() error
 	state       ETaskState
-	preTaskList []*Task
-	subTaskList []*Task
+	preTaskList []Task
+	subTaskList []Task
 }
 
 // NewTask 创建新的任务.
 //  do func() error: 任务的内容
 //  preTaskks: 任务的前置任务
-func NewTask(name string, do func() error, preTasks ...*Task) *Task {
-	newTask := Task{name: name, do: do, state: ETaskStateWaiting, preTaskList: preTasks}
+func NewTask(name string, do func() error, preTasks ...Task) Task {
+	newTask := task{name: name, do: do, state: ETaskStateWaiting, preTaskList: preTasks}
 
 	for _, preTask := range preTasks {
 		if preTask != nil {
-			preTask.subTaskList = append(preTask.subTaskList, &newTask)
+			task, _ := preTask.(*task)
+			task.subTaskList = append(task.subTaskList, &newTask)
 		}
 	}
 
@@ -47,8 +55,8 @@ func NewTask(name string, do func() error, preTasks ...*Task) *Task {
 
 // Equal
 // 判断是否指向同一个task
-func (t *Task) Equal(other container.Element) bool {
-	value, ok := other.(*Task)
+func (t *task) Equal(other container.Element) bool {
+	value, ok := other.(Task)
 	if !ok {
 		return false
 	}
@@ -57,23 +65,23 @@ func (t *Task) Equal(other container.Element) bool {
 }
 
 // GetState 获取任务状态.
-func (t *Task) GetState() ETaskState {
+func (t *task) GetState() ETaskState {
 	return t.state
 }
 
 // CheckIsReady 检查任务前置是否都已完成.
-func (t *Task) CheckIsReady() {
+func (t *task) CheckIsReady() {
 	for _, preTask := range t.preTaskList {
 		if preTask == nil {
 			continue
 		}
 
-		if preTask.state == ETaskStateError {
+		if preTask.GetState() == ETaskStateError {
 			t.state = ETaskStateError
 			return
 		}
 
-		if preTask.state != ETaskStateFinished {
+		if preTask.GetState() != ETaskStateFinished {
 			t.state = ETaskStateWaiting
 			return
 		}
@@ -82,7 +90,7 @@ func (t *Task) CheckIsReady() {
 	t.state = ETaskStateReady
 }
 
-func (t *Task) Run() {
+func (t *task) Run() {
 	if t.state != ETaskStateReady {
 		return
 	}

@@ -35,22 +35,22 @@ func TestCheckIsReady(t *testing.T) {
 	}
 
 	type TestCase struct {
-		task     *Task
+		task     Task
 		expected ETaskState
 	}
 
-	errorTask := NewTask("testTask", do)
+	errorTask := task{name: "errorTask", do: do}
 	errorTask.state = ETaskStateError
 
-	readyTask := NewTask("testTask", do)
+	readyTask := task{name: "readyTask", do: do}
 	readyTask.state = ETaskStateReady
 
-	finishedTask := NewTask("testTask", do)
+	finishedTask := task{name: "finishedTask", do: do}
 	finishedTask.state = ETaskStateFinished
 
-	taskWithFinishedPre := NewTask("testTask", do, finishedTask)
-	taskWithReadyPre := NewTask("testTask", do, readyTask)
-	taskWithErrorPre := NewTask("testTask", do, errorTask)
+	taskWithFinishedPre := NewTask("taskWithFinishedPre", do, &finishedTask)
+	taskWithReadyPre := NewTask("taskWithReadyPre", do, &readyTask)
+	taskWithErrorPre := NewTask("taskWithErrorPre", do, &errorTask)
 
 	testCases := []TestCase{
 		{task: taskWithFinishedPre, expected: ETaskStateReady},
