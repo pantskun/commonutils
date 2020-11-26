@@ -7,6 +7,8 @@ import (
 	"github.com/pantskun/commonutils/container"
 )
 
+const closeTimeout = 5 * time.Second
+
 type ETaskPoolState int
 
 const (
@@ -71,16 +73,16 @@ func (p *TaskPool) Run() {
 			}
 
 			// 从ReadyTaskQueue中取出头部任务进行执行
-			t := p.readyTaskQueue.Pop().(*Task)
+			t := p.readyTaskQueue.Pop().(Task)
 
 			t.Run()
 
 			// 根据任务执行后的状态，放入ErrorTaskList和FinishedTaskList
-			if t.state == ETaskStateError {
+			if t.GetState() == ETaskStateError {
 				p.errorTaskList.Add(t)
 			}
 
-			if t.state == ETaskStateFinished {
+			if t.GetState() == ETaskStateFinished {
 				p.finishedTaskList.Add(t)
 			}
 		}
@@ -94,7 +96,7 @@ func (p *TaskPool) Close() {
 	// 通知关闭
 	p.state = ETaskPoolStateClosing
 
-	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.TODO(), closeTimeout)
 	defer cancel()
 
 	// 等待关闭
@@ -111,7 +113,7 @@ func (p *TaskPool) Close() {
 	}
 }
 
-func (p *TaskPool) AddTask(task *Task) {
+func (p *TaskPool) AddTask(task Task) {
 	p.waitingTaskList.Add(task)
 	p.allTaskList.Add(task)
 }
@@ -122,8 +124,8 @@ func (p *TaskPool) checkWaitingTask() {
 			break
 		}
 
-		task := p.waitingTaskList.Get(i).(*Task)
-		if task.state == ETaskStateReady {
+		task := p.waitingTaskList.Get(i).(Task)
+		if task.GetState() == ETaskStateReady {
 			p.readyTaskQueue.Push(task)
 			p.waitingTaskList.Remove(i)
 
