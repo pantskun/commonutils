@@ -59,6 +59,8 @@ func (e *CmdTimeoutError) Error() string {
 	return "timeout"
 }
 
+// NewCommand
+// 创建Command对象
 func NewCommand(name string, args ...string) Command {
 	cmd := new(command)
 	cmd.cmd = exec.Command(name, args...)

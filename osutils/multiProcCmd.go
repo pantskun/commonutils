@@ -1,5 +1,7 @@
 package osutils
 
+import "runtime"
+
 type MultiProcCmd interface {
 	GetCmds() []Command
 	GetCmdStates() []ECmdState
@@ -19,6 +21,10 @@ type multiProcCmd struct {
 var _ MultiProcCmd = (*multiProcCmd)(nil)
 
 func NewMultiProcCmd(procNum int, name string, args ...string) MultiProcCmd {
+	if procNum > runtime.NumCPU() {
+		procNum = runtime.NumCPU()
+	}
+
 	cmds := make([]Command, procNum)
 
 	for i := 0; i < procNum; i++ {
