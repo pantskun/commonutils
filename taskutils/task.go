@@ -22,6 +22,7 @@ type Task interface {
 	Equal(other container.Element) bool
 	GetState() ETaskState
 	Run()
+	GetError() error
 
 	checkIsReady()
 }
@@ -29,6 +30,7 @@ type Task interface {
 type task struct {
 	name        string
 	do          func() error
+	err         error
 	state       ETaskState
 	preTaskList []Task
 	subTaskList []Task
@@ -98,8 +100,8 @@ func (t *task) Run() {
 
 	t.state = ETaskStateRunning
 
-	err := t.do()
-	if err != nil {
+	t.err = t.do()
+	if t.err != nil {
 		t.state = ETaskStateError
 		return
 	}
@@ -109,4 +111,8 @@ func (t *task) Run() {
 	for _, subTask := range t.subTaskList {
 		subTask.checkIsReady()
 	}
+}
+
+func (t *task) GetError() error {
+	return t.err
 }
