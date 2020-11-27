@@ -3,6 +3,8 @@ package pathutils
 import (
 	"os"
 	"strings"
+
+	"github.com/pkg/sftp"
 )
 
 // ConvertBackslashToSlash
@@ -40,6 +42,15 @@ func GetParentPath(p string) string {
 
 func IsDir(p string) (bool, error) {
 	info, err := os.Stat(p)
+	if err != nil {
+		return false, err
+	}
+
+	return info.IsDir(), nil
+}
+
+func IsDirWithSftp(p string, sftpClient *sftp.Client) (bool, error) {
+	info, err := sftpClient.Stat(p)
 	if err != nil {
 		return false, err
 	}
