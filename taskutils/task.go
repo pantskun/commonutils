@@ -4,10 +4,6 @@ import (
 	"github.com/pantskun/commonutils/container"
 )
 
-// type Task interface {
-// 	GetState() ETaskState
-// }
-
 type ETaskState int
 
 const (
