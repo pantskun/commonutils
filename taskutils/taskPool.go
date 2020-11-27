@@ -87,16 +87,18 @@ func (p *taskPool) Run() {
 			// 从ReadyTaskQueue中取出头部任务进行执行
 			t := p.readyTaskQueue.Pop().(Task)
 
-			t.Run()
+			go func() {
+				t.Run()
 
-			// 根据任务执行后的状态，放入ErrorTaskList和FinishedTaskList
-			if t.GetState() == ETaskStateError {
-				p.errorTaskList.Add(t)
-			}
+				// 根据任务执行后的状态，放入ErrorTaskList和FinishedTaskList
+				if t.GetState() == ETaskStateError {
+					p.errorTaskList.Add(t)
+				}
 
-			if t.GetState() == ETaskStateFinished {
-				p.finishedTaskList.Add(t)
-			}
+				if t.GetState() == ETaskStateFinished {
+					p.finishedTaskList.Add(t)
+				}
+			}()
 		}
 
 		// 结束循环，Pool关闭
