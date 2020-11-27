@@ -23,8 +23,6 @@ type Task interface {
 	GetState() ETaskState
 	Run()
 	GetError() error
-
-	checkIsReady()
 }
 
 type task struct {
@@ -72,6 +70,31 @@ func (t *task) GetState() ETaskState {
 	return t.state
 }
 
+func (t *task) Run() {
+	if t.state != ETaskStateReady {
+		return
+	}
+
+	t.state = ETaskStateRunning
+
+	t.err = t.do()
+	if t.err != nil {
+		t.state = ETaskStateError
+		return
+	}
+
+	t.state = ETaskStateFinished
+
+	for _, subTask := range t.subTaskList {
+		task, _ := subTask.(*task)
+		task.checkIsReady()
+	}
+}
+
+func (t *task) GetError() error {
+	return t.err
+}
+
 // CheckIsReady 检查任务前置是否都已完成.
 func (t *task) checkIsReady() {
 	for _, preTask := range t.preTaskList {
@@ -91,28 +114,4 @@ func (t *task) checkIsReady() {
 	}
 
 	t.state = ETaskStateReady
-}
-
-func (t *task) Run() {
-	if t.state != ETaskStateReady {
-		return
-	}
-
-	t.state = ETaskStateRunning
-
-	t.err = t.do()
-	if t.err != nil {
-		t.state = ETaskStateError
-		return
-	}
-
-	t.state = ETaskStateFinished
-
-	for _, subTask := range t.subTaskList {
-		subTask.checkIsReady()
-	}
-}
-
-func (t *task) GetError() error {
-	return t.err
 }
