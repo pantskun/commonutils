@@ -19,7 +19,19 @@ const (
 	ETaskPoolStateClosed
 )
 
-type TaskPool struct {
+type TaskPool interface {
+	GetTaskPoolState() ETaskPoolState
+	GetAllTaskNum() int
+	GetFinishedTaskNum() int
+	GetErrorTaskNum() int
+	GetWaitingTaskNum() int
+	GetReadyTaskNum() int
+	Run()
+	Close()
+	AddTask(task Task)
+}
+
+type taskPool struct {
 	allTaskList      container.Vector
 	waitingTaskList  container.Vector
 	errorTaskList    container.Vector
@@ -29,37 +41,37 @@ type TaskPool struct {
 	state ETaskPoolState
 }
 
-func NewTaskPool() *TaskPool {
-	return &TaskPool{
+func NewTaskPool() TaskPool {
+	return &taskPool{
 		state: ETaskPoolStateStop,
 	}
 }
 
-func (p *TaskPool) GetTaskPoolState() ETaskPoolState {
+func (p *taskPool) GetTaskPoolState() ETaskPoolState {
 	return p.state
 }
 
-func (p *TaskPool) GetAllTaskNum() int {
+func (p *taskPool) GetAllTaskNum() int {
 	return p.allTaskList.Size()
 }
 
-func (p *TaskPool) GetFinishedTaskNum() int {
+func (p *taskPool) GetFinishedTaskNum() int {
 	return p.finishedTaskList.Size()
 }
 
-func (p *TaskPool) GetErrorTaskNum() int {
+func (p *taskPool) GetErrorTaskNum() int {
 	return p.errorTaskList.Size()
 }
 
-func (p *TaskPool) GetWaitingTaskNum() int {
+func (p *taskPool) GetWaitingTaskNum() int {
 	return p.waitingTaskList.Size()
 }
 
-func (p *TaskPool) GetReadyTaskNum() int {
+func (p *taskPool) GetReadyTaskNum() int {
 	return p.readyTaskQueue.Size()
 }
 
-func (p *TaskPool) Run() {
+func (p *taskPool) Run() {
 	p.state = ETaskPoolStateRunning
 
 	// 开始循环，直到TaskPool状态不为Running
@@ -92,7 +104,7 @@ func (p *TaskPool) Run() {
 	}()
 }
 
-func (p *TaskPool) Close() {
+func (p *taskPool) Close() {
 	// 通知关闭
 	p.state = ETaskPoolStateClosing
 
@@ -113,12 +125,12 @@ func (p *TaskPool) Close() {
 	}
 }
 
-func (p *TaskPool) AddTask(task Task) {
+func (p *taskPool) AddTask(task Task) {
 	p.waitingTaskList.Add(task)
 	p.allTaskList.Add(task)
 }
 
-func (p *TaskPool) checkWaitingTask() {
+func (p *taskPool) checkWaitingTask() {
 	for i := 0; ; {
 		if !(i < p.waitingTaskList.Size()) {
 			break
