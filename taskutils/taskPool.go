@@ -13,10 +13,9 @@ type ETaskPoolState int
 
 const (
 	ETaskPoolStateError ETaskPoolState = iota
-	ETaskPoolStateStop
+	ETaskPoolStateClosed
 	ETaskPoolStateRunning
 	ETaskPoolStateClosing
-	ETaskPoolStateClosed
 )
 
 type TaskPool interface {
@@ -43,7 +42,7 @@ type taskPool struct {
 
 func NewTaskPool() TaskPool {
 	return &taskPool{
-		state: ETaskPoolStateStop,
+		state: ETaskPoolStateClosed,
 	}
 }
 
@@ -78,7 +77,7 @@ func (p *taskPool) Run() {
 	go func() {
 		for p.state == ETaskPoolStateRunning {
 			// 检测WaitingTaskList，将Ready的Task放入ReadyTaskQueue
-			p.checkWaitingTask()
+			p.getReadyTaskFromWaitingList()
 
 			if p.readyTaskQueue.IsEmpty() {
 				continue
@@ -132,7 +131,7 @@ func (p *taskPool) AddTask(task Task) {
 	p.allTaskList.Add(task)
 }
 
-func (p *taskPool) checkWaitingTask() {
+func (p *taskPool) getReadyTaskFromWaitingList() {
 	for i := 0; ; {
 		if !(i < p.waitingTaskList.Size()) {
 			break
@@ -141,6 +140,13 @@ func (p *taskPool) checkWaitingTask() {
 		task := p.waitingTaskList.Get(i).(Task)
 		if task.GetState() == ETaskStateReady {
 			p.readyTaskQueue.Push(task)
+			p.waitingTaskList.Remove(i)
+
+			continue
+		}
+
+		if task.GetState() == ETaskStateError {
+			p.errorTaskList.Add(task)
 			p.waitingTaskList.Remove(i)
 
 			continue

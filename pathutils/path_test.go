@@ -1,7 +1,15 @@
 package pathutils
 
-import "testing"
+import (
+	"testing"
 
-func TestModulePath(t *testing.T) {
-	t.Log(GetModulePath("pathlib"))
+	"github.com/stretchr/testify/assert"
+)
+
+func TestConvertBackslashToSlash(t *testing.T) {
+	assert.Equal(t, ConvertBackslashToSlash("a\\b\\c\\"), "a/b/c/")
+}
+
+func TestGetParentPath(t *testing.T) {
+	assert.Equal(t, GetParentPath("/a/b/c"), "/a/b")
 }

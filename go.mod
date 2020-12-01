@@ -10,4 +10,5 @@ require (
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0 // indirect
 	golang.org/x/text v0.3.3
+	gotest.tools v2.2.0+incompatible
 )

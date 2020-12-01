@@ -2,23 +2,12 @@ package main
 
 import (
 	"fmt"
-	"os"
 )
 
 func main() {
-	panicFunc()
-}
+	var input string
 
-func panicFunc() {
-	defer func() {
-		fmt.Println("start defer func")
+	fmt.Scanln(&input)
 
-		if r := recover(); r != nil {
-			fmt.Println("get panic", r)
-		}
-	}()
-
-	fmt.Println("ready to panic")
-	// panic("panic")
-	os.Exit(0)
+	fmt.Println(input)
 }

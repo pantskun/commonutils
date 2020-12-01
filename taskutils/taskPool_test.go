@@ -22,7 +22,7 @@ func TestTaskPool(t *testing.T) {
 	t.Log("test NewTaskPool")
 
 	taskPool := NewTaskPool()
-	assert.Equal(t, taskPool.GetTaskPoolState(), ETaskPoolStateStop)
+	assert.Equal(t, taskPool.GetTaskPoolState(), ETaskPoolStateClosed)
 
 	// test AddTask
 	t.Log("test AddTask")

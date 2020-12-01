@@ -1,6 +1,7 @@
 package osutils
 
 import (
+	"log"
 	"path"
 	"testing"
 
@@ -9,15 +10,11 @@ import (
 
 func TestCommand(t *testing.T) {
 	modulePath := pathutils.GetModulePath("commonutils")
-	testPath := path.Join(modulePath, "test/testcmd.exe")
+	testPath := path.Join(modulePath, "test/testcmd.go")
 
-	cmd := NewCommand(testPath)
+	cmd := NewCommand("go", "run", testPath)
 
-	if err := cmd.SetStdin("1\n"); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := cmd.SetStdin("12.22\n"); err != nil {
+	if err := cmd.SetStdin("test\n"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -27,5 +24,9 @@ func TestCommand(t *testing.T) {
 		t.Fatal(cmd.GetCmdError())
 	}
 
-	t.Log(cmd.GetStdout())
+	log.Println(cmd.GetStdout())
+	log.Println(cmd.GetStderr())
+
+	// assert.Equal(t, cmd.GetStderr(), "")
+	// assert.Equal(t, cmd.GetStdout(), "test")
 }
