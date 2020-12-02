@@ -1,11 +1,11 @@
 package osutils
 
 import (
-	"log"
 	"path"
 	"testing"
 
 	"github.com/pantskun/commonutils/pathutils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCommand(t *testing.T) {
@@ -24,9 +24,12 @@ func TestCommand(t *testing.T) {
 		t.Fatal(cmd.GetCmdError())
 	}
 
-	log.Println(cmd.GetStdout())
-	log.Println(cmd.GetStderr())
+	stdout := cmd.GetStdout()
+	stderr := cmd.GetStderr()
 
-	// assert.Equal(t, cmd.GetStderr(), "")
-	// assert.Equal(t, cmd.GetStdout(), "test")
+	assert.Equal(t, stdout, "test\n")
+	assert.Equal(t, stderr, "\n")
+
+	// log.Println(cmd.GetStdout())
+	// log.Println(cmd.GetStderr())
 }

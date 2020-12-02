@@ -40,9 +40,9 @@ func (v *Vector) Remove(pos int) {
 	}
 }
 
-func (v *Vector) Find(value Element) int {
+func (v *Vector) Find(value Element, equal func(Element, Element) bool) int {
 	for i, v := range v.values {
-		if Equal(v, value) {
+		if equal(v, value) {
 			return i
 		}
 	}

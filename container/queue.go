@@ -32,9 +32,9 @@ func (q *Queue) Pop() Element {
 	return t
 }
 
-func (q *Queue) Has(value Element) bool {
+func (q *Queue) Has(value Element, equal func(Element, Element) bool) bool {
 	for _, v := range q.values {
-		if Equal(v, value) {
+		if equal(v, value) {
 			return true
 		}
 	}
