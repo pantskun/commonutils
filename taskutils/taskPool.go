@@ -25,6 +25,7 @@ type TaskPool interface {
 	GetErrorTaskNum() int
 	GetWaitingTaskNum() int
 	GetReadyTaskNum() int
+	GetRunningTaskNum() int
 	Run()
 	Close()
 	AddTask(task Task)
@@ -35,6 +36,7 @@ type taskPool struct {
 	waitingTaskList  container.Vector
 	errorTaskList    container.Vector
 	readyTaskQueue   container.Queue
+	runningTaskList  container.Vector
 	finishedTaskList container.Vector
 
 	state ETaskPoolState
@@ -70,6 +72,10 @@ func (p *taskPool) GetReadyTaskNum() int {
 	return p.readyTaskQueue.Size()
 }
 
+func (p *taskPool) GetRunningTaskNum() int {
+	return p.runningTaskList.Size()
+}
+
 func (p *taskPool) Run() {
 	p.state = ETaskPoolStateRunning
 
@@ -87,7 +93,20 @@ func (p *taskPool) Run() {
 			t := p.readyTaskQueue.Pop().(Task)
 
 			go func() {
+				p.runningTaskList.Add(t)
+
 				t.Run()
+
+				i := p.runningTaskList.Find(
+					t,
+					func(e1, e2 container.Element) bool {
+						t1, _ := e1.(Task)
+						return t1.Equal(e2)
+					},
+				)
+				if i != -1 {
+					p.runningTaskList.Remove(i)
+				}
 
 				// 根据任务执行后的状态，放入ErrorTaskList和FinishedTaskList
 				if t.GetState() == ETaskStateError {

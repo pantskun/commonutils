@@ -18,7 +18,7 @@ type Command interface {
 	GetCmdState() ECmdState
 	GetCmdError() error
 	Run()
-	RunAsyn()
+	RunAsyn() <-chan bool
 	Kill() error
 	GetStdout() string
 	GetStderr() string
@@ -33,10 +33,6 @@ type command struct {
 	stdin  bytes.Buffer
 	stdout bytes.Buffer
 	stderr bytes.Buffer
-
-	// stdinPipe  io.WriteCloser
-	// stdoutPipe io.ReadCloser
-	// stderrPipe io.ReadCloser
 }
 
 var _ Command = (*command)(nil)
@@ -59,8 +55,7 @@ func (e *CmdTimeoutError) Error() string {
 	return "timeout"
 }
 
-// NewCommand
-// 创建Command对象
+// NewCommand 创建Command对象.
 func NewCommand(name string, args ...string) Command {
 	cmd := new(command)
 	cmd.cmd = exec.Command(name, args...)
@@ -68,24 +63,6 @@ func NewCommand(name string, args ...string) Command {
 	cmd.cmd.Stdin = &cmd.stdin
 	cmd.cmd.Stdout = &cmd.stdout
 	cmd.cmd.Stderr = &cmd.stderr
-
-	// if stdoutPipe, err := cmd.cmd.StdoutPipe(); err != nil {
-	// 	return nil, err
-	// } else {
-	// 	cmd.stdoutPipe = stdoutPipe
-	// }
-
-	// if stdinPipe, err := cmd.cmd.StdinPipe(); err != nil {
-	// 	return nil, err
-	// } else {
-	// 	cmd.stdinPipe = stdinPipe
-	// }
-
-	// if stderrPipe, err := cmd.cmd.StderrPipe(); err != nil {
-	// 	return nil, err
-	// } else {
-	// 	cmd.stderrPipe = stderrPipe
-	// }
 
 	return cmd
 }
@@ -110,10 +87,14 @@ func (c *command) Run() {
 	c.state = ECmdStateFinish
 }
 
-func (c *command) RunAsyn() {
+func (c *command) RunAsyn() <-chan bool {
 	c.state = ECmdStateRunning
 
+	endChan := make(chan bool, 1)
+
 	go func() {
+		defer func() { endChan <- true }()
+
 		if err := c.cmd.Run(); err != nil {
 			c.state = ECmdStateError
 			c.err = err
@@ -123,6 +104,8 @@ func (c *command) RunAsyn() {
 
 		c.state = ECmdStateFinish
 	}()
+
+	return endChan
 }
 
 func (c *command) Kill() error {
@@ -137,27 +120,6 @@ func (c *command) GetStdout() string {
 	return c.stdout.String()
 }
 
-// func (c *command) GetStderr(ctx context.Context) (string, error) {
-// 	for {
-// 		select {
-// 		case <-ctx.Done():
-// 			{
-// 				return "", &CmdTimeoutError{}
-// 			}
-// 		default:
-// 			{
-// 				if c.state == ECmdStateFinish || c.state == ECmdStateError {
-// 					// _, err := c.stderr.ReadFrom(c.stderrPipe)
-// 					// if err != nil {
-// 					// 	return "", err
-// 					// }
-// 					return c.stderr.String(), nil
-// 				}
-// 			}
-// 		}
-// 	}
-// }
-
 func (c *command) GetStderr() string {
 	return c.stderr.String()
 }
@@ -166,11 +128,6 @@ func (c *command) SetStdin(in string) error {
 	if c.state != ECmdStateRunning && c.state != ECmdStateReady {
 		return &CmdStateError{msg: "set stdin need cmd in running or ready state"}
 	}
-
-	// _, err := c.stdinPipe.Write([]byte(in))
-	// if err != nil {
-	// 	return err
-	// }
 
 	_, err := c.stdin.WriteString(in)
 	if err != nil {

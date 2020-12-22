@@ -40,6 +40,7 @@ func (v *Vector) Remove(pos int) {
 	}
 }
 
+// Find if not find value in vector, return -1
 func (v *Vector) Find(value Element, equal func(Element, Element) bool) int {
 	for i, v := range v.values {
 		if equal(v, value) {

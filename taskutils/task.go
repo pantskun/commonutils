@@ -28,6 +28,8 @@ type task struct {
 	state       ETaskState
 	preTaskList []Task
 	subTaskList []Task
+
+	
 }
 
 // NewTask 创建新的任务.
@@ -50,8 +52,7 @@ func NewTask(name string, do func() error, preTasks ...Task) Task {
 	return &newTask
 }
 
-// Equal
-// 判断是否指向同一个task.
+// Equal 判断是否指向同一个task.
 func (t *task) Equal(other container.Element) bool {
 	value, ok := other.(Task)
 	if !ok {
