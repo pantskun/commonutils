@@ -18,7 +18,10 @@ type Command interface {
 	GetCmdState() ECmdState
 	GetCmdError() error
 	Run()
-	RunAsyn() <-chan bool
+	RunAsyn()
+	// WaitForEnd use channel to check if cmd is end when cmd is running
+	// asynchronously. need check if the channel is nil.
+	WaitForEnd() <-chan bool
 	Kill() error
 	GetStdout() string
 	GetStderr() string
@@ -28,6 +31,7 @@ type Command interface {
 type command struct {
 	cmd   *exec.Cmd
 	state ECmdState
+	endc  chan bool
 	err   error
 
 	stdin  bytes.Buffer
@@ -87,13 +91,13 @@ func (c *command) Run() {
 	c.state = ECmdStateFinish
 }
 
-func (c *command) RunAsyn() <-chan bool {
+func (c *command) RunAsyn() {
 	c.state = ECmdStateRunning
 
-	endChan := make(chan bool, 1)
+	c.endc = make(chan bool, 1)
 
 	go func() {
-		defer func() { endChan <- true }()
+		defer func() { c.endc <- true }()
 
 		if err := c.cmd.Run(); err != nil {
 			c.state = ECmdStateError
@@ -104,8 +108,10 @@ func (c *command) RunAsyn() <-chan bool {
 
 		c.state = ECmdStateFinish
 	}()
+}
 
-	return endChan
+func (c *command) WaitForEnd() <-chan bool {
+	return c.endc
 }
 
 func (c *command) Kill() error {
